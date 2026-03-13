@@ -23,13 +23,23 @@ module music_player(
 
     // Our final output sample to the codec. This needs to be synced to
     // new_frame.
-    output wire [15:0] sample_out
+    output wire [15:0] sample_out,
+    
+    //output wires for note_display
+    output wire [5:0] note1,
+    output wire [5:0] note2,
+    output wire [5:0] note3,
+    
+    // enhanced wave display - rewiring from noteplayer
+    output wire [15:0] voice_out1,
+    output wire [15:0] voice_out2,
+    output wire [15:0] voice_out3
 );
     // The BEAT_COUNT is parameterized so you can reduce this in simulation.
     // If you reduce this to 100 your simulation will be 10x faster.
     parameter BEAT_COUNT = 1000;
 
-
+    
 //
 //  ****************************************************************************
 //      Master Control Unit
@@ -78,6 +88,10 @@ module music_player(
         .new_note(new_note),
         .note_done(note_done)
     );
+    
+    assign note1 = note_to_play1;
+    assign note2 = note_to_play2;
+    assign note3 = note_to_play3;
 
 //   
 //  ****************************************************************************
@@ -88,7 +102,13 @@ module music_player(
     wire generate_next_sample, generate_next_sample0;
     wire [15:0] note_sample, note_sample0;
     wire note_sample_ready, note_sample_ready0;
-
+    
+    //enhanced wave display - connect wires to music player
+    wire [15:0] voice1;
+    wire [15:0] voice2;
+    wire [15:0] voice3;
+    
+    
     // These pipeline registers were added to decrease the length of the critical path!
     dffr pipeline_ff_gen_next_sample (.clk(clk), .r(reset), .d(generate_next_sample0), .q(generate_next_sample));
     dffr #(.WIDTH(16)) pipeline_ff_note_sample (.clk(clk), .r(reset), .d(note_sample0), .q(note_sample));
@@ -107,8 +127,18 @@ module music_player(
         .beat(beat),
         .generate_next_sample(generate_next_sample),
         .sample_out(note_sample0),
-        .new_sample_ready(note_sample_ready0)
+        .new_sample_ready(note_sample_ready0),
+        
+        //enhanced wave display
+        .voice_out1(voice1),
+        .voice_out2(voice2),
+        .voice_out3(voice3)
     );
+    
+    // enhanced wave display - connect
+    assign voice_out1 = voice1;
+    assign voice_out2 = voice2;
+    assign voice_out3 = voice3;
       
 //   
 //  ****************************************************************************
