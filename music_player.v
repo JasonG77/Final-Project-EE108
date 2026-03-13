@@ -33,7 +33,11 @@ module music_player(
     // enhanced wave display - rewiring from noteplayer
     output wire [15:0] voice_out1,
     output wire [15:0] voice_out2,
-    output wire [15:0] voice_out3
+    output wire [15:0] voice_out3,
+    
+    //stereo effects outputs
+    output wire [15:0] sample_outL,
+    output wire [15:0] sample_outR
 );
     // The BEAT_COUNT is parameterized so you can reduce this in simulation.
     // If you reduce this to 100 your simulation will be 10x faster.
@@ -177,4 +181,19 @@ module music_player(
         .valid_sample(sample_out0)
     );
 
+
+
+//  ****************************************************************************
+//      Stereo Effects
+//  ****************************************************************************
+
+    stereo_effects stereo_effect (
+        .voice1(voice1),
+        .voice2(voice2),
+        .voice3(voice3),
+        .sample_outL(sample_outL),
+        .sample_outR(sample_outR)
+    );
+
+    
 endmodule

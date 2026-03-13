@@ -128,6 +128,10 @@ module lab5_top(
     wire [15:0] codec_sample, flopped_sample;
     wire new_sample, flopped_new_sample;
     
+    //stereo effects
+    wire [15:0] sample_outL;
+    wire [15:0] sample_outR;
+    
 
     dffr pipeline_ff_new_frame (.clk(clk_100), .r(reset), .d(new_frame), .q(new_frame1));
     
@@ -144,7 +148,10 @@ module lab5_top(
         .note3(note3),
         .voice_out1(voice_out1),
         .voice_out2(voice_out2),
-        .voice_out3(voice_out3)
+        .voice_out3(voice_out3),
+        .sample_outL(sample_outL),
+        .sample_outR(sample_outR)
+        
     );
     dff #(.WIDTH(17)) sample_reg (
         .clk(clk_100),
@@ -178,8 +185,8 @@ module lab5_top(
         .AC_MCLK(AC_MCLK),
         .AC_SCK(AC_SCK),
         .AC_SDA(AC_SDA),
-        .hphone_l({codec_sample, 8'h00}),
-        .hphone_r(hphone_r),
+        .hphone_l({sample_outL, 8'h00}),
+        .hphone_r({sample_outR, 8'h00}),
         .line_in_l(line_in_l),
         .line_in_r(line_in_r),
         .new_sample(new_frame)
