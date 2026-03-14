@@ -30,6 +30,7 @@ module lab5_top(
     output wire [2:0] leds_rgb_1,
 
     input [2:0] btn,
+    input [1:0] sw, //Jason Added switches input to top level module (board switch state)
 
     /* 
     //VGA OUTPUT 
@@ -46,16 +47,9 @@ module lab5_top(
     output [2:0] TMDS_Data_n
     
     // TODO: output LED0 onto something
-        
   
 );  
-    
-    //note_display
-    wire [5:0] note1, note2, note3;
-    
-    //enahnced wave display
-    wire [15:0] voice_out1, voice_out2, voice_out3;
-    
+
     wire reset, play_button, next_button;
     assign {reset, play_button, next_button} = btn;
 
@@ -127,31 +121,16 @@ module lab5_top(
     wire new_frame1;
     wire [15:0] codec_sample, flopped_sample;
     wire new_sample, flopped_new_sample;
-    
-    //stereo effects
-    wire [15:0] sample_outL;
-    wire [15:0] sample_outR;
-    
-
     dffr pipeline_ff_new_frame (.clk(clk_100), .r(reset), .d(new_frame), .q(new_frame1));
-    
     music_player #(.BEAT_COUNT(BEAT_COUNT)) music_player(
         .clk(clk_100),
         .reset(reset),
         .play_button(play),
         .next_button(next),
         .new_frame(new_frame1), 
+        .sw(sw),
         .sample_out(codec_sample),
-        .new_sample_generated(new_sample),
-        .note1(note1),
-        .note2(note2),
-        .note3(note3),
-        .voice_out1(voice_out1),
-        .voice_out2(voice_out2),
-        .voice_out3(voice_out3),
-        .sample_outL(sample_outL),
-        .sample_outR(sample_outR)
-        
+        .new_sample_generated(new_sample)
     );
     dff #(.WIDTH(17)) sample_reg (
         .clk(clk_100),
@@ -185,8 +164,8 @@ module lab5_top(
         .AC_MCLK(AC_MCLK),
         .AC_SCK(AC_SCK),
         .AC_SDA(AC_SDA),
-        .hphone_l({sample_outL, 8'h00}),
-        .hphone_r({sample_outR, 8'h00}),
+        .hphone_l({codec_sample, 8'h00}),
+        .hphone_r(hphone_r),
         .line_in_l(line_in_l),
         .line_in_r(line_in_r),
         .new_sample(new_frame)
@@ -232,56 +211,38 @@ module lab5_top(
     
     
     
+//    wave_display_top wd_top (
+//		.clk (clk_100),
+//		.reset (reset),
+//		.new_sample (new_sample),
+//		.sample (flopped_sample),
+//        .x(x[10:0]),
+//        .y(y[9:0]),
+//        //.valid(valid),
+//		.valid(vde),
+//		.vsync(vsync),
+//		.r(r_1),
+//		.g(g_1),
+//		.b(b_1)
+//    );
     wave_display_top wd_top (
-		.clk (clk_100),
-		.reset (reset),
-		.new_sample (flopped_new_sample),
-		.sample (flopped_sample),
-		.voice1(voice_out1),
-		.voice2(voice_out2),
-		.voice3(voice_out3),
-        .x(x[10:0]),
-        .y(y[9:0]),
-        //.valid(valid),
-		.valid(vde),
-		.vsync(vsync),
-		.r(r_1),
-		.g(g_1),
-		.b(b_1)
-    );
-    
-    // reworked for note_display
-    wire [8:0] char_addr;
-    wire [7:0] char_data;
-    wire [7:0] nd_r, nd_g, nd_b;
-    wire nd_valid;
-    
-    tcgrom tcgrom (
-        .addr(char_addr),
-        .data(char_data)
-    );
-    
-    note_display note_display (
-        .clk(clk_100),
-        .reset(reset),
-        .note1(note1),
-        .note2(note2),
-        .note3(note3),
+        .clk (clk_100),
+        .reset (reset),
+        .new_sample (flopped_new_sample),  // <-- I changed this
+        .sample (flopped_sample),
         .x(x[10:0]),
         .y(y[9:0]),
         .valid(vde),
-        .char_addr(char_addr),
-        .char_data(char_data),
-        .r(nd_r),
-        .g(nd_g),
-        .b(nd_b),
-        .valid_pixel(nd_valid)
+        .vsync(vsync),
+        .r(r_1),
+        .g(g_1),
+        .b(b_1)
     );
+
     
-    
-    assign r = nd_valid ? nd_r[7:4] : r_1[7:4];
-    assign g = nd_valid ? nd_g[7:4] : g_1[7:4];
-    assign b = nd_valid ? nd_b[7:4] : b_1[7:4];
+    assign r = r_1[7:4];
+    assign g = g_1[7:4];
+    assign b = b_1[7:4];
     assign pix_data = {
                         8'b0, 
                         r[3], r[3], r[2], r[2], r[1], r[1], r[0], r[0],
