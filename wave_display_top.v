@@ -7,6 +7,8 @@ module wave_display_top(
     input [9:0]  y,  // [0..1023]     
     input valid,
     input vsync,
+    input play, 
+    input [1:0] mode,
     output [7:0] r,
     output [7:0] g,
     output [7:0] b
@@ -55,7 +57,31 @@ module wave_display_top(
         .valid_pixel(valid_pixel),
         .r(wd_r), .g(wd_g), .b(wd_b)
     );
-
-    assign {r, g, b} = valid_pixel ? {wd_r, wd_g, wd_b} : {3{8'b0}};
+    
+    wire [1:0] icon_state;
+    
+    assign icon_state = 
+        ~play       ? 2'b11:
+        (mode == 2'b01) ? 2'b01 : 
+        (mode == 2'b10) ? 2'b10 :   // rewind
+                      2'b00;    // play
+    wire icon_on;
+    wire [7:0] icon_r, icon_g, icon_b;
+    
+    context_icons icons(
+    .x(x),
+    .y(y),
+    .state(icon_state),
+    .icon_on(icon_on),
+    .r(icon_r),
+    .g(icon_g),
+    .b(icon_b)
+    );
+    
+    
+    
+    assign {r, g, b} = 
+        icon_on ? {icon_r, icon_g, icon_b} : 
+        valid_pixel ? {wd_r, wd_g, wd_b} : {3{8'b0}};
 
 endmodule

@@ -31,7 +31,7 @@ module lab5_top(
 
     input [2:0] btn,
     input [1:0] sw, //Jason Added switches input to top level module (board switch state)
-
+    
     /* 
     //VGA OUTPUT 
     output [3:0] VGA_R,
@@ -121,6 +121,7 @@ module lab5_top(
     wire new_frame1;
     wire [15:0] codec_sample, flopped_sample;
     wire new_sample, flopped_new_sample;
+    wire play_state; // for icons
     dffr pipeline_ff_new_frame (.clk(clk_100), .r(reset), .d(new_frame), .q(new_frame1));
     music_player #(.BEAT_COUNT(BEAT_COUNT)) music_player(
         .clk(clk_100),
@@ -130,7 +131,8 @@ module lab5_top(
         .new_frame(new_frame1), 
         .sw(sw),
         .sample_out(codec_sample),
-        .new_sample_generated(new_sample)
+        .new_sample_generated(new_sample),
+        .play_state(play_state)
     );
     dff #(.WIDTH(17)) sample_reg (
         .clk(clk_100),
@@ -236,7 +238,9 @@ module lab5_top(
         .vsync(vsync),
         .r(r_1),
         .g(g_1),
-        .b(b_1)
+        .b(b_1),
+        .mode(sw), //for icons
+        .play(play_state)
     );
 
     
